@@ -11,9 +11,9 @@ inputs:
     required: false
     default: .
   version:
-    description: MIR Cargo crate version or requirement. Use latest for the newest stable release.
+    description: Exact MIR Cargo crate version to install.
     required: false
-    default: latest
+    default: '0.73.0'
   php-version:
     description: PHP language version MIR should target.
     required: false
@@ -46,11 +46,7 @@ runs:
       run: |
         set -euo pipefail
 
-        if [[ "$MIR_VERSION" == "latest" ]]; then
-          cargo install --root "$MIR_INSTALL_ROOT" mir-php
-        else
-          cargo install --root "$MIR_INSTALL_ROOT" --version "$MIR_VERSION" mir-php
-        fi
+        cargo install --locked --root "$MIR_INSTALL_ROOT" --version "=$MIR_VERSION" mir-php
 
         MIR_BINARY="$MIR_INSTALL_ROOT/bin/mir"
         test -x "$MIR_BINARY"

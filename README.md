@@ -27,14 +27,14 @@ jobs:
           path: src
 ```
 
-For reproducible builds, pin the action to a commit SHA and set `version` to an exact MIR package version.
+The action installs MIR `0.73.0` by default. For reproducible builds, pin the action to a commit SHA; the `version` input must be an exact MIR package version.
 
 ## Inputs
 
 | Input | Default | Description |
 | --- | --- | --- |
 | `path` | `.` | PHP file or directory to analyze. |
-| `version` | `latest` | MIR Cargo crate version or Cargo version requirement. |
+| `version` | `0.73.0` | Exact MIR Cargo crate version to install. |
 | `php-version` | `8.5` | PHP language version MIR should target. |
 | `arguments` | `[]` | Extra CLI arguments as a JSON array of strings. |
 
