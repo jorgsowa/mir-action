@@ -32,10 +32,10 @@ runs:
   using: composite
   steps:
     - name: Set up Rust
-      uses: dtolnay/rust-toolchain@stable
+      uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # stable
 
     - name: Set up jq
-      uses: dcarbone/install-jq-action@v4
+      uses: dcarbone/install-jq-action@4fcb5062d7ce9bc4382d1a352d19ba3ba2c317c1 # v4.0.1
 
     - name: Install MIR
       id: install
