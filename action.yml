@@ -1,0 +1,79 @@
+name: Run Mir
+description: Install and run the Mir - fast static analyzer for a PHP project.
+
+branding:
+  icon: search
+  color: purple
+
+inputs:
+  path:
+    description: Path to the PHP file or directory to analyze.
+    required: false
+    default: .
+  version:
+    description: MIR Cargo crate version or requirement. Use latest for the newest stable release.
+    required: false
+    default: latest
+  php-version:
+    description: PHP language version MIR should target.
+    required: false
+    default: '8.5'
+  arguments:
+    description: Additional MIR CLI arguments as a JSON array, for example ["--format", "json"].
+    required: false
+    default: '[]'
+
+outputs:
+  version:
+    description: Installed MIR version.
+    value: ${{ steps.install.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Set up jq
+      uses: dcarbone/install-jq-action@v4
+
+    - name: Install MIR
+      id: install
+      shell: bash
+      env:
+        MIR_VERSION: ${{ inputs.version }}
+        MIR_INSTALL_ROOT: ${{ runner.temp }}/mir-cargo
+      run: |
+        set -euo pipefail
+
+        if [[ "$MIR_VERSION" == "latest" ]]; then
+          cargo install --root "$MIR_INSTALL_ROOT" mir-php
+        else
+          cargo install --root "$MIR_INSTALL_ROOT" --version "$MIR_VERSION" mir-php
+        fi
+
+        MIR_BINARY="$MIR_INSTALL_ROOT/bin/mir"
+        test -x "$MIR_BINARY"
+        echo "version=$($MIR_BINARY --version)" >> "$GITHUB_OUTPUT"
+
+    - name: Run MIR
+      shell: bash
+      env:
+        MIR_BINARY: ${{ runner.temp }}/mir-cargo/bin/mir
+        MIR_PATH: ${{ inputs.path }}
+        MIR_PHP_VERSION: ${{ inputs.php-version }}
+        MIR_ARGUMENTS: ${{ inputs.arguments }}
+      run: |
+        set -euo pipefail
+        if ! jq -e 'type == "array" and all(.[]; type == "string" and (contains("\u0000") | not))' \
+          <<< "$MIR_ARGUMENTS" >/dev/null 2>&1; then
+          echo 'The arguments input must be a JSON array of strings.' >&2
+          exit 2
+        fi
+
+        mir_arguments=()
+        while IFS= read -r -d '' argument; do
+          mir_arguments+=("$argument")
+        done < <(jq -jr '.[] | . + "\u0000"' <<< "$MIR_ARGUMENTS")
+
+        "$MIR_BINARY" --php-version "$MIR_PHP_VERSION" "${mir_arguments[@]}" "$MIR_PATH"
