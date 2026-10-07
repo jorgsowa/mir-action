@@ -13,7 +13,7 @@ inputs:
   version:
     description: Exact MIR Cargo crate version to install.
     required: false
-    default: '0.73.0'
+    default: '0.86.0'
   php-version:
     description: PHP language version MIR should target.
     required: false
